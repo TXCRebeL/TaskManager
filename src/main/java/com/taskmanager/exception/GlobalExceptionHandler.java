@@ -38,4 +38,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Something went wrong"));
     }
+
+    @ExceptionHandler(CsvExportException.class)
+    public ResponseEntity<?> handleCsvExport(CsvExportException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
 }

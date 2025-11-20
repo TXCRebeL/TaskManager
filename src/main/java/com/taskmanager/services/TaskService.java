@@ -4,18 +4,26 @@ import com.taskmanager.dto.*;
 import com.taskmanager.enums.Priority;
 import com.taskmanager.enums.Status;
 import com.taskmanager.entity.Task;
+import com.taskmanager.exception.CsvExportException;
 import com.taskmanager.exception.ResourceNotFoundException;
 import com.taskmanager.mapper.TaskMapper;
 import com.taskmanager.repos.TaskRepository;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -242,5 +250,44 @@ public class TaskService {
         return response;
     }
 
+    // CSV EXPORT
+    public void exportTasksToCsv(HttpServletResponse response) {
+
+        try {
+            List<Task> tasks = repo.findAll();
+
+            response.setContentType("text/csv");
+            response.setHeader("Content-Disposition", "attachment; filename=\"tasks.csv\"");
+
+            PrintWriter writer = response.getWriter();
+            CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT);
+
+            Field[] fields = Task.class.getDeclaredFields();
+
+            // Header
+            List<String> headers = new ArrayList<>();
+            for (Field f : fields) {
+                f.setAccessible(true);
+                headers.add(f.getName());
+            }
+            printer.printRecord(headers);
+
+            // Rows
+            for (Task t : tasks) {
+                List<Object> row = new ArrayList<>();
+                for (Field f : fields) {
+                    f.setAccessible(true);
+                    row.add(f.get(t));
+                }
+                printer.printRecord(row);
+            }
+
+            printer.flush();
+            printer.close();
+
+        } catch (Exception ex) {
+            throw new CsvExportException("Failed to export CSV data", ex);
+        }
+    }
 
 }

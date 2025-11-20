@@ -3,14 +3,12 @@ package com.taskmanager.controller;
 import com.taskmanager.dto.*;
 import com.taskmanager.services.TaskService;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -104,12 +102,5 @@ public class TaskController {
         TaskPageResponse response = taskService.getPaginatedTasks(page, size);
         return ResponseEntity.ok(response);
     }
-
-    // CSV EXPORT
-    @GetMapping("/export/csv")
-    public void exportTasksToCsv(HttpServletResponse response) throws IOException {
-        taskService.exportTasksToCsv(response);
-    }
-
 
 }
